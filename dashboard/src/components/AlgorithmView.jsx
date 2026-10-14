@@ -33,7 +33,7 @@ function downloadJson(data, filename = 'optidbx_evidence.json') {
   URL.revokeObjectURL(url);
 }
 
-function DetectionCounter({ tape, revealed, telemetry, traceTicks, thresholds, onSelectTick }) {
+function DetectionCounter({ tape, tapeLabel, revealed, telemetry, traceTicks, thresholds, onSelectTick }) {
   const signals = useMemo(() => getDetectSignals(thresholds), [thresholds]);
 
   // If live trace ticks are available, render the truthful timestamped tick tape
@@ -156,6 +156,11 @@ function DetectionCounter({ tape, revealed, telemetry, traceTicks, thresholds, o
           {confirmed ? 'Confirmed (3/3)' : `${count}/3`}
         </span>
       </div>
+      {tapeLabel && (
+        <div style={{ fontSize: '.74rem', color: 'var(--s-neutral)', margin: '6px 0 2px', fontStyle: 'italic' }}>
+          Tape: {tapeLabel}
+        </div>
+      )}
       <div className="alg-readings">
         {seq.map((s, i) => (
           <span key={i} className={`alg-reading ${s.r === 'hi' ? 'hi' : 'ok'}`}>
@@ -407,6 +412,7 @@ export function AlgorithmVisual({ model, beat, emptyTitle, emptyText }) {
             </h4>
             <DetectionCounter
               tape={model.tape}
+              tapeLabel={model.tapeLabel}
               revealed={detectRevealed}
               telemetry={model.telemetry}
               traceTicks={model.traceTicks}

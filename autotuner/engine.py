@@ -2,6 +2,7 @@
 
 import logging
 from collections import deque
+from datetime import UTC, datetime
 from typing import Any
 
 from autotuner.action_selector import select_action
@@ -65,6 +66,26 @@ class AutotunerEngine:
         except ValueError:
             self.invalidate("Invalid or missing telemetry")
             logger.warning("Invalid or missing telemetry", extra={"event": "invalid_telemetry"})
+            now_iso = datetime.now(UTC).isoformat()
+            th = self.config.thresholds
+            self.decision_trace.append({
+                "timestamp": now_iso,
+                "signals": {
+                    "cpu_percent": {"value": None, "threshold": th.cpu_high_percent, "passed": False},
+                    "context_switches": {"value": None, "threshold": th.context_switches_high_per_interval, "passed": False},
+                    "active_workers": {"value": None, "threshold": th.active_workers_high, "passed": False},
+                    "query_latency_ms": {"value": None, "threshold": th.query_latency_high_ms, "passed": False},
+                },
+                "candidate": False,
+                "consecutive": 0,
+                "required": self.config.monitoring.consecutive_bad_readings,
+                "state": TunerState.MONITORING.value,
+                "recommended": None,
+                "old_value": None,
+                "new_value": None,
+                "suppressed_reason": None,
+                "invalidated": "Invalid or missing telemetry",
+            })
             raise
 
         if self.recent_readings:

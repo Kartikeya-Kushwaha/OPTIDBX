@@ -384,9 +384,7 @@ class ActionLifecycle:
                 f"throughput {evaluation.throughput_change_percent:+}%"
             )
             with self.lock:
-                self.record["net_percent"] = round(
-                    evaluation.throughput_change_percent - 0.5 * max(0, evaluation.latency_change_percent), 1
-                )
+                self.record["net_percent"] = None
                 self.record["policy"] = "telemetry_fallback"
                 self.record["weights"] = {"throughput": 1.0, "latency": 0.5}
                 self.record["vetoes"] = [

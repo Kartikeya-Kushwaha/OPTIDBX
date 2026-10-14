@@ -150,3 +150,20 @@ def test_decision_trace_endpoint_matches_config():
     assert algo["improvement_percent"] == cfg.tuning.improvement_percent
     assert algo["degradation_percent"] == cfg.tuning.degradation_percent
     assert algo["rejection_memory_ttl_seconds"] == cfg.tuning.rejection_memory_ttl_seconds
+
+
+def test_invalid_telemetry_appends_to_decision_trace():
+    config = load_config()
+    engine = AutotunerEngine(config)
+
+    with pytest.raises(ValueError):
+        engine.process(None)
+
+    trace = engine.get_decision_trace(10)
+    assert len(trace) == 1
+    t = trace[0]
+    assert t["invalidated"] == "Invalid or missing telemetry"
+    assert t["candidate"] is False
+    assert t["consecutive"] == 0
+    assert t["signals"]["cpu_percent"]["value"] is None
+

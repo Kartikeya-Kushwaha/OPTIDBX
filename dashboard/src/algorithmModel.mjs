@@ -42,7 +42,7 @@ export function getDetectSignals(thresholds = {}) {
       key: 'context_switches',
       label: 'Context switches',
       unit: '/int',
-      limit: thresholds.context_switches_high_per_interval ?? 4000,
+      limit: thresholds.context_switches_high_per_interval ?? 3000,
     },
     {
       key: 'active_workers',
@@ -200,6 +200,7 @@ export function actionModel(action, source, title) {
       query_latency_ms: cmp?.latency?.before ?? action?.before?.query_latency_ms,
     },
     tape: action ? ['hi', 'hi', 'hi'] : null,
+    tapeLabel: action ? 'inferred (3 readings required before any action)' : null,
     hasApply: !!act,
     hasObserve: !!evidence,
     evidence,
@@ -228,7 +229,7 @@ export function liveTraceModel(live, traceData, stageIndex = 0) {
   const activeAction = status.active_action;
   const traceTicks = traceData?.ticks || [];
   const algorithm = traceData?.algorithm || {
-    thresholds: { cpu_high_percent: 90, context_switches_high_per_interval: 4000, active_workers_high: 4, query_latency_high_ms: 200 },
+    thresholds: { cpu_high_percent: 90, context_switches_high_per_interval: 3000, active_workers_high: 4, query_latency_high_ms: 200 },
     required_consecutive: 3,
     allowed_workers: DEFAULT_ALLOWED_WORKERS,
     keep_policy: 'net_benefit',
@@ -263,14 +264,14 @@ export function liveTraceModel(live, traceData, stageIndex = 0) {
       ? 'Continuously evaluating multi-signal contention every 5s against thresholds.'
       : 'Live evaluation in progress.');
 
-  const timestampStr = lastTick?.timestamp
-    ? new Date(lastTick.timestamp).toLocaleTimeString()
-    : new Date().toLocaleTimeString();
+  const badge = lastTick?.timestamp
+    ? `LIVE · computed by backend at ${new Date(lastTick.timestamp).toLocaleTimeString()}`
+    : 'LIVE · waiting for first backend tick';
 
   return {
     source: 'live',
     title: 'Live session',
-    badge: `LIVE · computed by backend at ${timestampStr}`,
+    badge,
     telemetry: {
       cpu_percent: lastTick?.signals?.cpu_percent?.value ?? live?.metrics?.os?.cpu_percent,
       context_switches: lastTick?.signals?.context_switches?.value ?? live?.metrics?.os?.context_switches,

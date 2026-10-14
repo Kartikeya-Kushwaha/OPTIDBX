@@ -114,4 +114,18 @@ test('actionModel notes unrecorded evaluations for older runs without back-filli
   const model = actionModel(legacyAction, 'recorded', 'Legacy Run');
   assert.equal(model.notRecorded, true);
   assert.equal(model.storedNet, null);
+  assert.equal(model.tapeLabel, 'inferred (3 readings required before any action)');
 });
+
+test('getDetectSignals uses default fallback of 3000 for context switches', () => {
+  const sigs = getDetectSignals({});
+  const ctx = sigs.find((s) => s.key === 'context_switches');
+  assert.equal(ctx.limit, 3000);
+});
+
+test('liveTraceModel shows waiting badge when no ticks yet', () => {
+  const model = liveTraceModel({ tunerStatus: {} }, { ticks: [] }, 0);
+  assert.equal(model.badge, 'LIVE · waiting for first backend tick');
+  assert.equal(model.algorithm.thresholds.context_switches_high_per_interval, 3000);
+});
+
